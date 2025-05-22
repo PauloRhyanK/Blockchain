@@ -2,6 +2,7 @@ import hashlib
 import time
 import threading
 import json
+import matplotlib.pyplot as plt
 
 
 
@@ -146,7 +147,7 @@ def concurrent_mining(num_threads, difficulty = 2, newBlock = False ,blockchain 
 
 if __name__ == "__main__":
     # concurrent_mining(num_threads=4,difficulty=2)
-    testeBlock = Blockchain(6)
+    testeBlock = Blockchain(4)
     testeBlock.create_genesis_block()   
     queueDataList = [
         "Alonso passo 20 Blockcoin para ZecaUrubu",
@@ -169,7 +170,36 @@ if __name__ == "__main__":
 
     print(json.dumps([block.__dict__ for block in testeBlock.chain], indent=4))
     print("MinerTimers:", json.dumps(MinerTimers, indent=4))
+       
     testeBlock.check_blockchain()
+    
+    x = []
+    y = []
+    for i in range(len(MinerTimers)):
+        x.append(MinerTimers[i]["index"])
+        y.append(MinerTimers[i]["time"])
+    plt.plot(x, y, marker='o')
+    
+    # testeBlock = Blockchain(4)
+    # testeBlock.create_genesis_block()       
+    # MinerTimers = []
+    # for i in range(0,len(queueDataList)):
+    #     newBlock = Block(testeBlock.get_latest_index() + 1, testeBlock.get_latest_block().previous_hash, time.time(), queueDataList[i] )
+    #     concurrent_mining(num_threads=8, newBlock=newBlock, blockchain=testeBlock, MinerTimers= MinerTimers)
+    # x = []
+    # y = []
+    # for i in range(len(MinerTimers)):
+    #     x.append(MinerTimers[i]["index"])
+    #     y.append(MinerTimers[i]["time"])
+    # plt.plot(x, y, marker='o')
+        
+    plt.title("Grafico de tempo")
+    plt.xlabel("Bloco")
+    plt.ylabel("Tempo")
+    plt.grid(True)
+    plt.savefig("minetimer.png")
+    
+    
     
     
     
