@@ -147,8 +147,7 @@ def concurrent_mining(num_threads, difficulty = 2, newBlock = False ,blockchain 
 
 if __name__ == "__main__":
     # concurrent_mining(num_threads=4,difficulty=2)
-    testeBlock = Blockchain(4)
-    testeBlock.create_genesis_block()   
+
     queueDataList = [
         "Alonso passo 20 Blockcoin para ZecaUrubu",
         "Patolino passou 12919 BlockCoin para Pernalonga",
@@ -163,22 +162,37 @@ if __name__ == "__main__":
     ]
     # print(json.dumps(testeBlock.get_latest_block().__dict__))
     
-    MinerTimers = []
-    for i in range(0,len(queueDataList)):
-        newBlock = Block(testeBlock.get_latest_index() + 1, testeBlock.get_latest_block().previous_hash, time.time(), queueDataList[i] )
-        concurrent_mining(num_threads=4, newBlock=newBlock, blockchain=testeBlock, MinerTimers= MinerTimers)
+    num_threads = [1,2,4,8]
+    for number in num_threads:
+        bookChain = Blockchain(4)
+        bookChain.create_genesis_block()   
+        MinerTimers = []
+        for i in range(0,len(queueDataList)):
+            newBlock = Block(bookChain.get_latest_index() + 1, bookChain.get_latest_block().previous_hash, time.time(), queueDataList[i] )
+            concurrent_mining(num_threads=number, newBlock=newBlock, blockchain=bookChain, MinerTimers= MinerTimers)
+        bookChain.check_blockchain()
+        x = []
+        y = []
+        for i in range(len(MinerTimers)):
+            x.append(MinerTimers[i]["index"])
+            y.append(MinerTimers[i]["time"])
+        label = str(number) + " threads"
+        plt.plot(x, y, marker='o', label=label)
+    plt.figlegend(["1 Thread","2 Threads","4 Threads","8 Threads"])
+        
 
-    print(json.dumps([block.__dict__ for block in testeBlock.chain], indent=4))
-    print("MinerTimers:", json.dumps(MinerTimers, indent=4))
+    plt.title("Grafico de tempo")
+    plt.xlabel("Bloco")
+    plt.ylabel("Tempo")
+    plt.grid(True,linestyle=':', alpha=0.7)
+    plt.savefig("minetimer.png")
+    # print(json.dumps([block.__dict__ for block in bookChain.chain], indent=4))
+              
        
-    testeBlock.check_blockchain()
     
-    x = []
-    y = []
-    for i in range(len(MinerTimers)):
-        x.append(MinerTimers[i]["index"])
-        y.append(MinerTimers[i]["time"])
-    plt.plot(x, y, marker='o')
+    
+   
+    
     
     # testeBlock = Blockchain(4)
     # testeBlock.create_genesis_block()       
@@ -191,13 +205,7 @@ if __name__ == "__main__":
     # for i in range(len(MinerTimers)):
     #     x.append(MinerTimers[i]["index"])
     #     y.append(MinerTimers[i]["time"])
-    # plt.plot(x, y, marker='o')
-        
-    plt.title("Grafico de tempo")
-    plt.xlabel("Bloco")
-    plt.ylabel("Tempo")
-    plt.grid(True)
-    plt.savefig("minetimer.png")
+    # 
     
     
     
