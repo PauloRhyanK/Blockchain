@@ -89,16 +89,17 @@ def concurrent_mining(num_threads, difficulty, newBlock = False ,blockchain = Fa
 if __name__ == "__main__":
     # concurrent_mining(num_threads=4,difficulty=3)
     testeBlock = Blockchain(4)
-    testeBlock.create_genesis_block()
-    print(testeBlock.get_latest_index() + 1 )
-    print(json.dumps(testeBlock.get_latest_block().__dict__))
-    bloco1 = Block(testeBlock.get_latest_index() + 1, testeBlock.get_latest_block().previous_hash, time.time(), "Dado 1")
-    concurrent_mining(num_threads=1, difficulty=2, newBlock=bloco1, blockchain=testeBlock )
-    bloco2 = Block(testeBlock.get_latest_index() + 1, testeBlock.get_latest_block().previous_hash, time.time(), "Dado 2")
-    concurrent_mining(num_threads=1, difficulty=2, newBlock=bloco2, blockchain=testeBlock )
-    bloco3 = Block(testeBlock.get_latest_index() + 1, testeBlock.get_latest_block().previous_hash, time.time(), "Dado 3")
-    concurrent_mining(num_threads=1, difficulty=2, newBlock=bloco3, blockchain=testeBlock )
-    print(testeBlock.get_latest_index())
+    testeBlock.create_genesis_block()   
+    queueDataList = [
+        "Dado 1",
+        "Dado 2",
+        "Dado 3"
+    ]
+    # print(json.dumps(testeBlock.get_latest_block().__dict__))
+    for i in range(0,len(queueDataList)):
+        newBlock = Block(testeBlock.get_latest_index() + 1, testeBlock.get_latest_block().previous_hash, time.time(), queueDataList[i] )
+        concurrent_mining(num_threads=1, difficulty=2, newBlock=newBlock, blockchain=testeBlock )
+
     print(json.dumps([block.__dict__ for block in testeBlock.chain], indent=4))
     
     #Nota: Ainda não está funcioanando adicionar blocos com multiplas threads, pois acabam que todos adicionam o bloco com hashs que fizeram, 
