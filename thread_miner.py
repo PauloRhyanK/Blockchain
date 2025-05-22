@@ -21,15 +21,24 @@ class Block:
     
     def mine_block(self, difficulty, stop_event):
         prefix = '0' * difficulty
+        timeA = time.time()
         while not self.hash.startswith(prefix):
             # print(f"Tentativa de mineração com nonce {self.nonce}: {self.hash}")
             if stop_event.is_set():
-                return
+                return False
 
+            # print(f"Tentativa de mineração com nonce {self.nonce}: {self.hash} (Thread: {threading.current_thread().name})")
             self.nonce += 1
             self.hash = self.calculate_hash()
-        print(f"Bloco Minerado com nonce {self.nonce}: {self.hash}")
-        stop_event.set()
+        
+        if not stop_event.is_set():
+            print(f"Bloco Minerado com nonce {self.nonce}: {self.hash} (Thread: {threading.current_thread().name}) Tempo: {time.time() - timeA :.2f}s")
+            stop_event.set()
+            return True
+        else:
+            return False
+        
+        
             
 class Blockchain:
     def __init__(self, difficulty=4):
@@ -47,12 +56,20 @@ class Blockchain:
         if(last_block):
             return last_block.index;
         return 0
+    
+    def check_block(self, hash):
+        for index_chain in range(len(self.chain)):
+            if self.chain[index_chain].hash == hash:
+                return False
+        return True
             
     
-    def add_block(self, new_block):
+    def add_block(self, new_block, stop_event):
         new_block.previous_hash = self.get_latest_block().hash
-        new_block.mine_block(self.difficulty, threading.Event())
-        self.chain.append(new_block)
+        sucessMiner = new_block.mine_block(self.difficulty, stop_event)
+        if(sucessMiner and self.check_block(new_block.hash)):
+            self.chain.append(new_block)
+        
             
 def concurrent_mining(num_threads, difficulty, newBlock = False ,blockchain = False):
     
@@ -69,7 +86,7 @@ def concurrent_mining(num_threads, difficulty, newBlock = False ,blockchain = Fa
     def mine():
         block_copy = Block(latest_block.index, latest_block.previous_hash, latest_block.timestamp, latest_block.data)
         if(block_existing):
-            blockchain.add_block(block_copy);
+            blockchain.add_block(block_copy, stop_event);
         else:
             block_copy.mine_block(difficulty, stop_event)
         
@@ -87,7 +104,7 @@ def concurrent_mining(num_threads, difficulty, newBlock = False ,blockchain = Fa
     print(f"\n Mineracao com {num_threads} threads concluidas em {elapsed_time:.2f} segundos.")
     
 if __name__ == "__main__":
-    # concurrent_mining(num_threads=4,difficulty=3)
+    # concurrent_mining(num_threads=4,difficulty=2)
     testeBlock = Blockchain(4)
     testeBlock.create_genesis_block()   
     queueDataList = [
@@ -98,12 +115,10 @@ if __name__ == "__main__":
     # print(json.dumps(testeBlock.get_latest_block().__dict__))
     for i in range(0,len(queueDataList)):
         newBlock = Block(testeBlock.get_latest_index() + 1, testeBlock.get_latest_block().previous_hash, time.time(), queueDataList[i] )
-        concurrent_mining(num_threads=1, difficulty=2, newBlock=newBlock, blockchain=testeBlock )
+        concurrent_mining(num_threads=10, difficulty=2, newBlock=newBlock, blockchain=testeBlock )
 
     print(json.dumps([block.__dict__ for block in testeBlock.chain], indent=4))
     
-    #Nota: Ainda não está funcioanando adicionar blocos com multiplas threads, pois acabam que todos adicionam o bloco com hashs que fizeram, 
-    # blocos multiplicados
     
     
     
